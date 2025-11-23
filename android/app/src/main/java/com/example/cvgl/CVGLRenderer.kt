@@ -5,6 +5,8 @@ import android.opengl.GLSurfaceView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
+class CVGLRenderer : GLSurfaceView.Renderer {
+
     private var textureId: Int = 0
     private var mProgram: Int = 0
     private var mPositionHandle: Int = 0
