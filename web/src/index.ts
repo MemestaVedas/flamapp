@@ -43,9 +43,19 @@ const server = http.createServer((req, res) => {
                         color: #888;
                         font-size: 0.9em;
                     }
+                    #fps-counter {
+                        position: absolute;
+                        top: 20px;
+                        left: 20px;
+                        color: #00FF00;
+                        font-size: 18px;
+                        font-weight: bold;
+                        font-family: monospace;
+                    }
                 </style>
             </head>
             <body>
+                <div id="fps-counter">FPS: 0</div>
                 <h1>FlamApp Live Stream</h1>
                 <div id="video-container">
                     <img id="stream" src="" alt="Waiting for stream..." width="640" height="480" />
@@ -55,7 +65,11 @@ const server = http.createServer((req, res) => {
                 <script>
                     const img = document.getElementById('stream');
                     const status = document.getElementById('status');
+                    const fpsCounter = document.getElementById('fps-counter');
                     const ws = new WebSocket('ws://' + window.location.host);
+
+                    let frameCount = 0;
+                    let lastFpsTime = performance.now();
 
                     ws.onopen = () => {
                         status.textContent = 'Connected';
@@ -69,6 +83,16 @@ const server = http.createServer((req, res) => {
                             URL.revokeObjectURL(url);
                         };
                         img.src = url;
+
+                        // Calculate FPS
+                        frameCount++;
+                        const now = performance.now();
+                        if (now - lastFpsTime >= 1000) {
+                            const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                            fpsCounter.textContent = 'FPS: ' + fps;
+                            frameCount = 0;
+                            lastFpsTime = now;
+                        }
                     };
 
                     ws.onclose = () => {

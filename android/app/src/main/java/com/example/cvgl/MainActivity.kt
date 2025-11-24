@@ -22,6 +22,12 @@ import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
+    // Processing modes
+    enum class ProcessingMode {
+        RAW,
+        EDGE_DETECTION
+    }
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var renderer: CVGLRenderer
@@ -35,6 +41,12 @@ class MainActivity : AppCompatActivity() {
     private var frameCounter = 0
     private val STREAM_SKIP_FRAMES = 2 // Send every 3rd frame
     private var isStreaming = true
+    
+    // Processing mode
+    private var processingMode = ProcessingMode.EDGE_DETECTION
+    
+    // Shader mode
+    private var shaderMode = CVGLRenderer.ShaderMode.NORMAL
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -100,6 +112,33 @@ class MainActivity : AppCompatActivity() {
             val intent = intent
             finish()
             startActivity(intent)
+        }
+        
+        binding.btnToggleMode.setOnClickListener {
+            processingMode = when (processingMode) {
+                ProcessingMode.RAW -> ProcessingMode.EDGE_DETECTION
+                ProcessingMode.EDGE_DETECTION -> ProcessingMode.RAW
+            }
+            updateModeIndicator()
+            Toast.makeText(this, "Mode: ${processingMode.name}", Toast.LENGTH_SHORT).show()
+        }
+        
+        binding.btnToggleShader.setOnClickListener {
+            shaderMode = when (shaderMode) {
+                CVGLRenderer.ShaderMode.NORMAL -> CVGLRenderer.ShaderMode.INVERT
+                CVGLRenderer.ShaderMode.INVERT -> CVGLRenderer.ShaderMode.NORMAL
+            }
+            renderer.setShaderMode(shaderMode)
+            Toast.makeText(this, "Shader: ${shaderMode.name}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun updateModeIndicator() {
+        runOnUiThread {
+            binding.modeIndicator.text = when (processingMode) {
+                ProcessingMode.RAW -> "Mode: RAW"
+                ProcessingMode.EDGE_DETECTION -> "Mode: EDGE DETECTION"
+            }
         }
     }
 
@@ -167,8 +206,11 @@ class MainActivity : AppCompatActivity() {
 
         val processedMat = org.opencv.core.Mat()
 
-        // Process in Native
-        nativeProcessFrame(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
+        // Process in Native based on mode
+        when (processingMode) {
+            ProcessingMode.RAW -> nativePassthrough(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
+            ProcessingMode.EDGE_DETECTION -> nativeProcessFrame(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
+        }
 
         // Stream Frame
         if (isStreaming && frameCounter++ % STREAM_SKIP_FRAMES == 0) {
@@ -233,4 +275,5 @@ class MainActivity : AppCompatActivity() {
     // Native methods
     external fun stringFromJNI(): String
     external fun nativeProcessFrame(matAddrInput: Long, matAddrOutput: Long)
+    external fun nativePassthrough(matAddrInput: Long, matAddrOutput: Long)
 }

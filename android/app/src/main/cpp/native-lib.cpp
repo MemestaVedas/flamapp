@@ -37,4 +37,20 @@ Java_com_example_cvgl_MainActivity_nativeProcessFrame(
     // cv::bitwise_not(matOutput, matOutput);
 }
 
+JNIEXPORT void JNICALL
+Java_com_example_cvgl_MainActivity_nativePassthrough(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong matAddrInput,
+        jlong matAddrOutput) {
+    
+    cv::Mat& matInput = *(cv::Mat*)matAddrInput;
+    cv::Mat& matOutput = *(cv::Mat*)matAddrOutput;
+
+    if (matInput.empty()) return;
+
+    // Simply copy input to output without any processing
+    matInput.copyTo(matOutput);
+}
+
 }

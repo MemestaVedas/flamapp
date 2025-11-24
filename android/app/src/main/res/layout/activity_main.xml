@@ -36,37 +36,76 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/modeIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="Mode: EDGE DETECTION"
+            android:textColor="#00BFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Controls Container -->
         <LinearLayout
             android:id="@+id/controlsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:padding="16dp"
-            android:weightSum="2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
+            <!-- Toggle Mode Button -->
             <Button
-                android:id="@+id/btnStopStream"
-                android:layout_width="0dp"
+                android:id="@+id/btnToggleMode"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="#F44336"
-                android:text="Stop Stream"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#FF9800"
+                android:text="Toggle Mode"
+                android:textColor="#FFFFFF" />
+                
+            <!-- Toggle Shader Button -->
+            <Button
+                android:id="@+id/btnToggleShader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#9C27B0"
+                android:text="Toggle Shader"
                 android:textColor="#FFFFFF" />
 
-            <Button
-                android:id="@+id/btnResetApp"
-                android:layout_width="0dp"
+            <!-- Control Buttons Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="#2196F3"
-                android:text="Reset App"
-                android:textColor="#FFFFFF" />
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/btnStopStream"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#F44336"
+                    android:text="Stop Stream"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/btnResetApp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2196F3"
+                    android:text="Reset App"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

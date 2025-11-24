@@ -6,6 +6,7 @@ class StreamSimulator {
     private frameCount: number = 0;
     private lastTime: number = 0;
     private fpsElement: HTMLElement | null;
+    private fpsOverlayElement: HTMLElement | null;
     private resolutionElement: HTMLElement | null;
     private statusElement: HTMLElement | null;
 
@@ -13,6 +14,7 @@ class StreamSimulator {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         this.ctx = this.canvas.getContext('2d')!;
         this.fpsElement = document.getElementById('fps');
+        this.fpsOverlayElement = document.getElementById('fpsOverlayValue');
         this.resolutionElement = document.getElementById('resolution');
         this.statusElement = document.getElementById('status');
     }
@@ -74,8 +76,12 @@ class StreamSimulator {
         this.frameCount++;
         const now = performance.now();
         if (now - this.lastTime >= 1000) {
+            const fps = this.frameCount.toString();
             if (this.fpsElement) {
-                this.fpsElement.textContent = this.frameCount.toString();
+                this.fpsElement.textContent = fps;
+            }
+            if (this.fpsOverlayElement) {
+                this.fpsOverlayElement.textContent = fps;
             }
             this.frameCount = 0;
             this.lastTime = now;

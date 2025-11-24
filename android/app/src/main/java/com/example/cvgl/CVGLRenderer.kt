@@ -10,10 +10,20 @@ import javax.microedition.khronos.opengles.GL10
 
 class CVGLRenderer : GLSurfaceView.Renderer {
 
+    // Shader modes
+    enum class ShaderMode {
+        NORMAL,
+        INVERT
+    }
+
     private var textureId = 0
     private var width = 0
     private var height = 0
     private var buffer: ByteBuffer? = null
+    private var shaderMode = ShaderMode.NORMAL
+    private var programNormal = 0
+    private var programInvert = 0
+    private var currentProgram = 0
 
     // Simple vertex and fragment shaders
     private val vertexShaderCode = """
@@ -32,6 +42,16 @@ class CVGLRenderer : GLSurfaceView.Renderer {
         varying vec2 texCoord;
         void main() {
             gl_FragColor = texture2D(uTexture, texCoord);
+        }
+    """
+    
+    private val fragmentShaderInvert = """
+        precision mediump float;
+        uniform sampler2D uTexture;
+        varying vec2 texCoord;
+        void main() {
+            vec4 color = texture2D(uTexture, texCoord);
+            gl_FragColor = vec4(1.0 - color.rgb, color.a);
         }
     """
 
@@ -60,11 +80,21 @@ class CVGLRenderer : GLSurfaceView.Renderer {
 
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
         val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
+        val fragmentShaderInv = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderInvert)
 
-        program = GLES20.glCreateProgram()
-        GLES20.glAttachShader(program, vertexShader)
-        GLES20.glAttachShader(program, fragmentShader)
-        GLES20.glLinkProgram(program)
+        // Create normal program
+        programNormal = GLES20.glCreateProgram()
+        GLES20.glAttachShader(programNormal, vertexShader)
+        GLES20.glAttachShader(programNormal, fragmentShader)
+        GLES20.glLinkProgram(programNormal)
+        
+        // Create invert program
+        programInvert = GLES20.glCreateProgram()
+        GLES20.glAttachShader(programInvert, vertexShader)
+        GLES20.glAttachShader(programInvert, fragmentShaderInv)
+        GLES20.glLinkProgram(programInvert)
+        
+        currentProgram = programNormal
 
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
@@ -79,10 +109,16 @@ class CVGLRenderer : GLSurfaceView.Renderer {
             GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, width, height, 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, it)
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-            GLES20.glUseProgram(program)
+            
+            // Use current shader program
+            currentProgram = when (shaderMode) {
+                ShaderMode.NORMAL -> programNormal
+                ShaderMode.INVERT -> programInvert
+            }
+            GLES20.glUseProgram(currentProgram)
 
-            val positionHandle = GLES20.glGetAttribLocation(program, "vPosition")
-            val texCoordHandle = GLES20.glGetAttribLocation(program, "vTexCoord")
+            val positionHandle = GLES20.glGetAttribLocation(currentProgram, "vPosition")
+            val texCoordHandle = GLES20.glGetAttribLocation(currentProgram, "vTexCoord")
 
             vertexBuffer.position(0)
             GLES20.glEnableVertexAttribArray(positionHandle)
@@ -107,6 +143,10 @@ class CVGLRenderer : GLSurfaceView.Renderer {
         this.width = width
         this.height = height
         this.buffer = ByteBuffer.wrap(data)
+    }
+    
+    fun setShaderMode(mode: ShaderMode) {
+        this.shaderMode = mode
     }
 
     private fun loadShader(type: Int, shaderCode: String): Int {
