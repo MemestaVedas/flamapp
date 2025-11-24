@@ -4,6 +4,7 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+PROJECT_JOURNEY.md
 
 # Android
 *.iml
