@@ -6,6 +6,16 @@ A cross-platform computer vision application that captures camera frames on Andr
 
 ## 📱 Screenshots & Demo
 
+### Android Application
+
+![App Idle State](./Screenshots/Idle.png)
+*App in idle state with camera feed*
+
+![Mobile View](./Screenshots/Mobile.png)
+*Mobile interface showing edge detection controls*
+
+![Streaming Active](./Screenshots/Streaming.png)
+*Real-time streaming with edge detection processing*
 
 ---
 
