@@ -15,6 +15,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.cvgl.databinding.ActivityMainBinding
 import org.opencv.core.MatOfByte
+import org.opencv.core.Core
 import org.opencv.imgcodecs.Imgcodecs
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     // Streaming control
     private var frameCounter = 0
     private val STREAM_SKIP_FRAMES = 2 // Send every 3rd frame
+    private var isStreaming = true
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -83,6 +85,22 @@ class MainActivity : AppCompatActivity() {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+
+        setupButtons()
+    }
+
+    private fun setupButtons() {
+        binding.btnStopStream.setOnClickListener {
+            isStreaming = false
+            Toast.makeText(this, "Streaming Stopped", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnResetApp.setOnClickListener {
+            // Restart the activity
+            val intent = intent
+            finish()
+            startActivity(intent)
+        }
     }
 
     private fun startCamera() {
@@ -128,14 +146,32 @@ class MainActivity : AppCompatActivity() {
         // Create OpenCV Mats
         val yMat = org.opencv.core.Mat(height, width, org.opencv.core.CvType.CV_8UC1)
         yMat.put(0, 0, data)
+
+        // Rotate based on camera orientation
+        val rotatedMat = org.opencv.core.Mat()
+        val rotationDegrees = image.imageInfo.rotationDegrees
         
+        if (rotationDegrees == 90) {
+            Core.rotate(yMat, rotatedMat, Core.ROTATE_90_CLOCKWISE)
+        } else if (rotationDegrees == 270) {
+            Core.rotate(yMat, rotatedMat, Core.ROTATE_90_COUNTERCLOCKWISE)
+        } else if (rotationDegrees == 180) {
+            Core.rotate(yMat, rotatedMat, Core.ROTATE_180)
+        } else {
+            yMat.copyTo(rotatedMat)
+        }
+        
+        // Use rotated dimensions
+        val rotatedWidth = rotatedMat.width()
+        val rotatedHeight = rotatedMat.height()
+
         val processedMat = org.opencv.core.Mat()
 
         // Process in Native
-        nativeProcessFrame(yMat.nativeObjAddr, processedMat.nativeObjAddr)
+        nativeProcessFrame(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
 
         // Stream Frame
-        if (frameCounter++ % STREAM_SKIP_FRAMES == 0) {
+        if (isStreaming && frameCounter++ % STREAM_SKIP_FRAMES == 0) {
             val matOfByte = MatOfByte()
             Imgcodecs.imencode(".jpg", processedMat, matOfByte)
             val byteArray = matOfByte.toArray()
@@ -148,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         processedMat.get(0, 0, processedData)
 
         // Update Renderer
-        renderer.updateTexture(processedData, width, height)
+        renderer.updateTexture(processedData, rotatedWidth, rotatedHeight)
         binding.glSurfaceView.requestRender()
 
         // Calculate and display FPS
@@ -156,6 +192,7 @@ class MainActivity : AppCompatActivity() {
 
         // Release Mats
         yMat.release()
+        rotatedMat.release()
         processedMat.release()
         
         image.close()
