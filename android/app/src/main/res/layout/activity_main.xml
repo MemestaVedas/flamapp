@@ -69,15 +69,54 @@
                 android:text="Toggle Mode"
                 android:textColor="#FFFFFF" />
                 
-            <!-- Toggle Shader Button -->
-            <Button
-                android:id="@+id/btnToggleShader"
+            <!-- Threshold Controls -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:layout_marginBottom="8dp"
-                android:backgroundTint="#9C27B0"
-                android:text="Toggle Shader"
-                android:textColor="#FFFFFF" />
+                android:padding="8dp"
+                android:background="#222222">
+                
+                <!-- Low Threshold -->
+                <TextView
+                    android:id="@+id/lowThresholdLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Low Threshold: 50"
+                    android:textColor="#00FF00"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+                    
+                <SeekBar
+                    android:id="@+id/lowThresholdSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="200"
+                    android:progress="50"
+                    android:progressTint="#00FF00"
+                    android:thumbTint="#00FF00" />
+                    
+                <!-- High Threshold -->
+                <TextView
+                    android:id="@+id/highThresholdLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="High Threshold: 150"
+                    android:textColor="#00BFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+                    
+                <SeekBar
+                    android:id="@+id/highThresholdSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="300"
+                    android:progress="150"
+                    android:progressTint="#00BFFF"
+                    android:thumbTint="#00BFFF" />
+            </LinearLayout>
 
             <!-- Control Buttons Row -->
             <LinearLayout

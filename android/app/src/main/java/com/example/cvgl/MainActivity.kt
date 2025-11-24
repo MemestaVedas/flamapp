@@ -45,8 +45,9 @@ class MainActivity : AppCompatActivity() {
     // Processing mode
     private var processingMode = ProcessingMode.EDGE_DETECTION
     
-    // Shader mode
-    private var shaderMode = CVGLRenderer.ShaderMode.NORMAL
+    // Canny thresholds
+    private var lowThreshold = 50
+    private var highThreshold = 150
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -123,14 +124,24 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Mode: ${processingMode.name}", Toast.LENGTH_SHORT).show()
         }
         
-        binding.btnToggleShader.setOnClickListener {
-            shaderMode = when (shaderMode) {
-                CVGLRenderer.ShaderMode.NORMAL -> CVGLRenderer.ShaderMode.INVERT
-                CVGLRenderer.ShaderMode.INVERT -> CVGLRenderer.ShaderMode.NORMAL
+        // Setup threshold sliders
+        binding.lowThresholdSeekBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                lowThreshold = progress
+                binding.lowThresholdLabel.text = "Low Threshold: $progress"
             }
-            renderer.setShaderMode(shaderMode)
-            Toast.makeText(this, "Shader: ${shaderMode.name}", Toast.LENGTH_SHORT).show()
-        }
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+        })
+        
+        binding.highThresholdSeekBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                highThreshold = progress
+                binding.highThresholdLabel.text = "High Threshold: $progress"
+            }
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+        })
     }
     
     private fun updateModeIndicator() {
@@ -209,7 +220,7 @@ class MainActivity : AppCompatActivity() {
         // Process in Native based on mode
         when (processingMode) {
             ProcessingMode.RAW -> nativePassthrough(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
-            ProcessingMode.EDGE_DETECTION -> nativeProcessFrame(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr)
+            ProcessingMode.EDGE_DETECTION -> nativeProcessFrame(rotatedMat.nativeObjAddr, processedMat.nativeObjAddr, lowThreshold, highThreshold)
         }
 
         // Stream Frame
@@ -274,6 +285,6 @@ class MainActivity : AppCompatActivity() {
     
     // Native methods
     external fun stringFromJNI(): String
-    external fun nativeProcessFrame(matAddrInput: Long, matAddrOutput: Long)
+    external fun nativeProcessFrame(matAddrInput: Long, matAddrOutput: Long, lowThreshold: Int, highThreshold: Int)
     external fun nativePassthrough(matAddrInput: Long, matAddrOutput: Long)
 }

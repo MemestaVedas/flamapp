@@ -14,7 +14,9 @@ Java_com_example_cvgl_MainActivity_nativeProcessFrame(
         JNIEnv* env,
         jobject /* this */,
         jlong matAddrInput,
-        jlong matAddrOutput) {
+        jlong matAddrOutput,
+        jint lowThreshold,
+        jint highThreshold) {
     
     cv::Mat& matInput = *(cv::Mat*)matAddrInput;
     cv::Mat& matOutput = *(cv::Mat*)matAddrOutput;
@@ -30,8 +32,8 @@ Java_com_example_cvgl_MainActivity_nativeProcessFrame(
     cv::Mat blurred;
     cv::GaussianBlur(matInput, blurred, cv::Size(5, 5), 1.5);
 
-    // 2. Canny
-    cv::Canny(blurred, matOutput, 50, 150);
+    // 2. Canny with dynamic thresholds
+    cv::Canny(blurred, matOutput, lowThreshold, highThreshold);
     
     // 3. Invert for better visibility (optional: white edges on black background is standard)
     // cv::bitwise_not(matOutput, matOutput);
